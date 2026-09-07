@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Consultorio Digital · Gestión de Turnos</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<main class="container">
+  <section class="hero">
+    <h1>Sistema Web de Gestión de Turnos</h1>
+    <p>Digitalizamos y automatizamos la reserva de turnos del consultorio médico, reemplazando WhatsApp y llamadas informales por una plataforma clara para pacientes, profesionales y personal administrativo.</p>
+  </section>
+
+  <div id="alertBox"></div>
+
+  <div class="grid-3">
+    <div class="card role-card" onclick="location.href='pacientes.html'">
+      <div class="icon">🧑‍🤝‍🧑</div>
+      <h3>Módulo Pacientes</h3>
+      <p>Registrate, consultá disponibilidad por especialidad o profesional, solicitá o cancelá turnos y recibí confirmaciones.</p>
+      <span class="btn">Ingresar como Paciente</span>
+    </div>
+    <div class="card role-card" onclick="location.href='medicos.html'">
+      <div class="icon">🩺</div>
+      <h3>Módulo Médicos</h3>
+      <p>Visualizá tu agenda diaria o semanal, gestioná el estado de tus turnos y dejá notas de atención.</p>
+      <span class="btn">Ingresar como Profesional</span>
+    </div>
+    <div class="card role-card" onclick="location.href='recepcion.html'">
+      <div class="icon">🗂️</div>
+      <h3>Recepción / Administración</h3>
+      <p>Gestioná la agenda global, altas y bajas de profesionales, especialidades, obras sociales y sobreturnos.</p>
+      <span class="btn">Ingresar a Recepción</span>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h3>✅ Alcance del MVP</h3>
+      <ul class="scope-list">
+        <li>Gestión completa del ciclo de vida del turno: reserva, cancelación, reprogramación y ficha básica.</li>
+        <li>Autenticación simulada y control de accesos por rol (paciente, profesional, recepción).</li>
+        <li>Notificaciones / recordatorios simulados a pacientes y profesionales.</li>
+        <li>Aplicación web responsiva (escritorio y dispositivos móviles).</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>🚧 Fuera de alcance (v1)</h3>
+      <ul class="scope-list">
+        <li>Integración con pasarelas de pago online.</li>
+        <li>Integración en tiempo real con sistemas externos de Obras Sociales / Prepagas.</li>
+      </ul>
+      <p style="color:var(--gris-texto);font-size:.85rem;margin-bottom:0">Estos límites permiten garantizar un software estable, funcional y testeado dentro de los plazos de la materia.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>🧪 Datos de prueba</h3>
+    <p style="margin-top:0">Esta demo funciona íntegramente en tu navegador (sin servidor), ideal para publicar en GitHub Pages. Usuarios de ejemplo para el módulo Pacientes:</p>
+    <table>
+      <thead><tr><th>Email</th><th>Contraseña</th></tr></thead>
+      <tbody>
+        <tr><td>juan@mail.com</td><td>1234</td></tr>
+        <tr><td>maria@mail.com</td><td>1234</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:.85rem;color:var(--gris-texto)">También podés crear un paciente nuevo desde "Registrarme" en el módulo Pacientes, o entrar directamente como Médico/Recepción sin contraseña (roles internos de la demo).</p>
+  </div>
+</main>
+
+<script src="js/data.js"></script>
+<script src="js/nav.js"></script>
+<script>
+  renderHeader("inicio");
+  renderFooter();
+  loadDB(); // asegura que la base de datos de ejemplo exista
+</script>
+</body>
+</html>
