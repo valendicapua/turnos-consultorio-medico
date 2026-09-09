@@ -62,14 +62,20 @@ header.topbar .brand {
 }
 
 header.topbar .brand .logo {
-  width: 34px;
-  height: 34px;
+  height: 36px;
+  padding: 3px 8px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.18);
+  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.1rem;
+}
+
+header.topbar .brand .logo img {
+  height: 100%;
+  width: auto;
+  display: block;
 }
 
 nav.mainnav {

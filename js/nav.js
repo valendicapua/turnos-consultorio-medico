@@ -36,7 +36,7 @@ function renderHeader(activePage) {
     "afterbegin",
     `
     <header class="topbar">
-      <div class="brand"><span class="logo">🩺</span> Consultorio Digital</div>
+      <div class="brand"><span class="logo"><img src="img/logo.png" alt="Logo" /></span> Consultorio Digital</div>
       <nav class="mainnav">${navHtml}</nav>
       ${sessionHtml}
     </header>
