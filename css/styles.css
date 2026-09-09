@@ -293,6 +293,44 @@ tr:hover td {
   }
 }
 
+/* Tablas largas con muchas columnas: en mobile se muestran como
+   lista de tarjetas en vez de una tabla apretada/superpuesta. */
+@media (max-width: 700px) {
+  .responsive-table thead {
+    display: none;
+  }
+  .responsive-table,
+  .responsive-table tbody,
+  .responsive-table tr,
+  .responsive-table td {
+    display: block;
+    width: 100%;
+  }
+  .responsive-table tr {
+    border: 1px solid var(--gris-borde);
+    border-radius: 8px;
+    padding: 0.6rem 0.75rem;
+    margin-bottom: 0.6rem;
+  }
+  .responsive-table tr:hover td {
+    background: none;
+  }
+  .responsive-table td {
+    border-bottom: none;
+    padding: 0.3rem 0;
+  }
+  .responsive-table td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-weight: 600;
+    color: var(--gris-texto);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 0.15rem;
+  }
+}
+
 /* ---------- Badges ---------- */
 .badge {
   display: inline-block;

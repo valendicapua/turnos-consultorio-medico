@@ -128,18 +128,18 @@ function renderDashboardPaciente(alerta) {
         ${
           misTurnos.length === 0
             ? `<div class="empty-state">Todavía no tenés turnos solicitados.</div>`
-            : `<table>
+            : `<table class="responsive-table">
                 <thead><tr><th>Fecha</th><th>Hora</th><th>Especialidad</th><th>Profesional</th><th>Estado</th><th></th></tr></thead>
                 <tbody>
                   ${misTurnos
                     .map(
                       (t) => `
                     <tr>
-                      <td>${formatFecha(t.fecha)}</td>
-                      <td>${t.hora}</td>
-                      <td>${nombreEspecialidad(db, t.especialidadId)}</td>
-                      <td>${nombreProfesional(db, t.profesionalId)}</td>
-                      <td><span class="${estadoBadgeClass(t.estado)}">${t.estado}</span></td>
+                      <td data-label="Fecha">${formatFecha(t.fecha)}</td>
+                      <td data-label="Hora">${t.hora}</td>
+                      <td data-label="Especialidad">${nombreEspecialidad(db, t.especialidadId)}</td>
+                      <td data-label="Profesional">${nombreProfesional(db, t.profesionalId)}</td>
+                      <td data-label="Estado"><span class="${estadoBadgeClass(t.estado)}">${t.estado}</span></td>
                       <td>${
                         ["confirmado", "pendiente"].includes(t.estado)
                           ? `<button class="btn danger small" onclick="cancelarTurno('${t.id}')">Cancelar</button>`

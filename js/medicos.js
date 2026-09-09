@@ -111,21 +111,21 @@ function renderPanelMedico(alerta) {
         ${
           turnos.length === 0
             ? `<div class="empty-state">No hay turnos con pacientes asignados en este rango.</div>`
-            : `<table>
+            : `<table class="responsive-table">
                 <thead><tr><th>Fecha</th><th>Hora</th><th>Paciente</th><th>Estado</th><th>Nota</th><th>Acciones</th></tr></thead>
                 <tbody>
                   ${turnos
                     .map(
                       (t) => `
                     <tr>
-                      <td>${formatFecha(t.fecha)}</td>
-                      <td>${t.hora}${t.sobreturno ? ' <span class="tag">sobreturno</span>' : ""}</td>
-                      <td>${nombrePaciente(db, t.pacienteId)}</td>
-                      <td><span class="${estadoBadgeClass(t.estado)}">${t.estado}</span></td>
-                      <td style="max-width:220px">
+                      <td data-label="Fecha">${formatFecha(t.fecha)}</td>
+                      <td data-label="Hora">${t.hora}${t.sobreturno ? ' <span class="tag">sobreturno</span>' : ""}</td>
+                      <td data-label="Paciente">${nombrePaciente(db, t.pacienteId)}</td>
+                      <td data-label="Estado"><span class="${estadoBadgeClass(t.estado)}">${t.estado}</span></td>
+                      <td data-label="Nota" style="max-width:220px">
                         <input type="text" value="${(t.notas || "").replace(/"/g, "&quot;")}" placeholder="Agregar nota..." onchange="guardarNota('${t.id}', this.value)" />
                       </td>
-                      <td>
+                      <td data-label="Acciones">
                         <select onchange="cambiarEstado('${t.id}', this.value)" style="width:auto">
                           ${["confirmado", "atendido", "ausente", "cancelado"]
                             .map((e) => `<option value="${e}" ${t.estado === e ? "selected" : ""}>${e}</option>`)

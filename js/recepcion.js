@@ -1,6 +1,7 @@
 /* Módulo Recepción / Administración */
 
 let recepcionTab = "agenda";
+let recepcionAgendaFecha = null; // se inicializa al primer render con el dia de hoy
 
 function initRecepcion() {
   const session = getSession();
@@ -60,36 +61,58 @@ function irTab(tab) {
   renderPanelRecepcion();
 }
 
+function filtrarAgendaFecha(fecha) {
+  recepcionAgendaFecha = fecha;
+  renderTabContent();
+}
+
 function renderTabContent() {
   const container = document.getElementById("tabContent");
   const db = loadDB();
 
   if (recepcionTab === "agenda") {
-    const turnos = [...db.turnos].sort((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora));
+    const fechasPosibles = [0, 1, 2].map((d) => todayISO(d));
+    if (!recepcionAgendaFecha) recepcionAgendaFecha = fechasPosibles[0];
+    const turnos = [...db.turnos]
+      .filter((t) => recepcionAgendaFecha === "todos" || t.fecha === recepcionAgendaFecha)
+      .sort((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora));
     container.innerHTML = `
       <div class="card">
         <div class="flex-between">
-          <h3 style="margin:0">Agenda global (próximos 3 días)</h3>
+          <h3 style="margin:0">Agenda global</h3>
+          <div class="pill-group" style="margin:0">
+            ${fechasPosibles
+              .map(
+                (f) =>
+                  `<span class="pill ${recepcionAgendaFecha === f ? "active" : ""}" onclick="filtrarAgendaFecha('${f}')">${formatFecha(f)}</span>`
+              )
+              .join("")}
+            <span class="pill ${recepcionAgendaFecha === "todos" ? "active" : ""}" onclick="filtrarAgendaFecha('todos')">Todos (3 días)</span>
+          </div>
         </div>
         <div class="table-wrap">
-          <table>
-            <thead><tr><th>Fecha</th><th>Hora</th><th>Profesional</th><th>Especialidad</th><th>Paciente</th><th>Estado</th></tr></thead>
-            <tbody>
-              ${turnos
-                .map(
-                  (t) => `
-                <tr>
-                  <td>${formatFecha(t.fecha)}</td>
-                  <td>${t.hora}${t.sobreturno ? ' <span class="tag">sobreturno</span>' : ""}</td>
-                  <td>${nombreProfesional(db, t.profesionalId)}</td>
-                  <td>${nombreEspecialidad(db, t.especialidadId)}</td>
-                  <td>${t.pacienteId ? nombrePaciente(db, t.pacienteId) : "—"}</td>
-                  <td><span class="${estadoBadgeClass(t.estado)}">${t.estado}</span></td>
-                </tr>`
-                )
-                .join("")}
-            </tbody>
-          </table>
+          ${
+            turnos.length === 0
+              ? `<div class="empty-state">No hay turnos cargados para ese filtro.</div>`
+              : `<table class="responsive-table">
+                <thead><tr><th>Fecha</th><th>Hora</th><th>Profesional</th><th>Especialidad</th><th>Paciente</th><th>Estado</th></tr></thead>
+                <tbody>
+                  ${turnos
+                    .map(
+                      (t) => `
+                    <tr>
+                      <td data-label="Fecha">${formatFecha(t.fecha)}</td>
+                      <td data-label="Hora">${t.hora}${t.sobreturno ? ' <span class="tag">sobreturno</span>' : ""}</td>
+                      <td data-label="Profesional">${nombreProfesional(db, t.profesionalId)}</td>
+                      <td data-label="Especialidad">${nombreEspecialidad(db, t.especialidadId)}</td>
+                      <td data-label="Paciente">${t.pacienteId ? nombrePaciente(db, t.pacienteId) : "—"}</td>
+                      <td data-label="Estado"><span class="${estadoBadgeClass(t.estado)}">${t.estado}</span></td>
+                    </tr>`
+                    )
+                    .join("")}
+                </tbody>
+              </table>`
+          }
         </div>
       </div>`;
   } else if (recepcionTab === "sobreturno") {
