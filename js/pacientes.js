@@ -163,13 +163,13 @@ function cancelarTurno(turnoId) {
   const db = loadDB();
   const turno = db.turnos.find((t) => t.id === turnoId);
   if (turno) {
+    const pacienteId = turno.pacienteId;
     turno.estado = "libre";
     turno.pacienteId = null;
-    db.notificaciones.push({
-      id: uid("notif"),
-      destinatario: "paciente",
+    simularEnvioNotificacion(db, {
+      pacienteId,
       mensaje: `Turno del ${formatFecha(turno.fecha)} ${turno.hora} cancelado correctamente.`,
-      fecha: new Date().toISOString(),
+      canales: ["email", "whatsapp"],
     });
     saveDB(db);
   }
@@ -341,12 +341,15 @@ function confirmarReserva() {
   }
   turno.estado = "confirmado";
   turno.pacienteId = session.id;
-  db.notificaciones.push({
-    id: uid("notif"),
-    destinatario: "paciente",
+  const { avisos } = simularEnvioNotificacion(db, {
+    pacienteId: session.id,
     mensaje: `Turno confirmado para el ${formatFecha(turno.fecha)} a las ${turno.hora}.`,
-    fecha: new Date().toISOString(),
+    canales: ["email", "whatsapp"],
   });
   saveDB(db);
-  renderDashboardPaciente({ tipo: "success", msg: "¡Turno confirmado! Te enviamos un recordatorio (simulado) por email." });
+  const avisoTxt = avisos.length ? ` (${avisos.join(", ")}, no se pudo enviar por ese medio)` : "";
+  renderDashboardPaciente({
+    tipo: "success",
+    msg: `¡Turno confirmado! Te enviamos un recordatorio (simulado) por email y WhatsApp.${avisoTxt}`,
+  });
 }

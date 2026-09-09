@@ -159,3 +159,52 @@ function estadoBadgeClass(estado) {
     }[estado] || "badge"
   );
 }
+
+/* ---------------- Notificaciones (simuladas) ----------------
+   Simula el envío de una notificación al paciente, por email y/o
+   WhatsApp, usando los datos de contacto con los que se registró.
+   No envía nada real: solo deja constancia en el historial. */
+
+function simularEnvioNotificacion(db, { pacienteId, mensaje, canales, etiqueta }) {
+  const paciente = pacienteId ? db.pacientes.find((p) => p.id === pacienteId) : null;
+  const contacto = {};
+  const canalesEfectivos = [];
+  const avisos = [];
+
+  if (canales.includes("email")) {
+    if (paciente && paciente.email) {
+      contacto.email = paciente.email;
+      canalesEfectivos.push("email");
+    } else if (paciente) {
+      avisos.push("no tiene email registrado");
+    }
+  }
+  if (canales.includes("whatsapp")) {
+    if (paciente && paciente.telefono) {
+      contacto.telefono = paciente.telefono;
+      canalesEfectivos.push("whatsapp");
+    } else if (paciente) {
+      avisos.push("no tiene teléfono registrado");
+    }
+  }
+
+  const notif = {
+    id: uid("notif"),
+    pacienteId: pacienteId || null,
+    etiqueta: etiqueta || (paciente ? paciente.nombre : "Todos"),
+    canal: canalesEfectivos,
+    contacto,
+    mensaje,
+    fecha: new Date().toISOString(),
+  };
+  db.notificaciones.push(notif);
+  return { notif, avisos };
+}
+
+function canalBadgeHtml(canal) {
+  return canal === "email"
+    ? '<span class="tag">📧 Email</span>'
+    : canal === "whatsapp"
+    ? '<span class="tag">💬 WhatsApp</span>'
+    : `<span class="tag">${canal}</span>`;
+}

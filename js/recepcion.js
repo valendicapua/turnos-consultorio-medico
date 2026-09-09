@@ -205,9 +205,30 @@ function renderTabContent() {
       </div>`;
   } else if (recepcionTab === "notificaciones") {
     const notifs = [...db.notificaciones].reverse();
+    const paciente = db.pacientes[0];
     container.innerHTML = `
       <div class="card">
-        <h3>Enviar notificación manual</h3>
+        <h3>Enviar notificación a un paciente puntual</h3>
+        <p style="color:var(--gris-texto);margin-top:0">Se simula el envío usando el email y/o el teléfono con el que ese paciente se registró.</p>
+        <label>Paciente</label>
+        <select id="notifPacienteId" onchange="actualizarContactoNotif()">
+          ${db.pacientes.map((p) => `<option value="${p.id}">${p.nombre}</option>`).join("")}
+        </select>
+        <div id="notifContactoInfo" class="alert alert-info" style="margin-top:.6rem"></div>
+        <label>Canales de envío</label>
+        <div class="pill-group" style="margin-bottom:.3rem">
+          <label style="display:flex;align-items:center;gap:.35rem;font-weight:400"><input type="checkbox" id="notifCanalEmail" checked /> Email</label>
+          <label style="display:flex;align-items:center;gap:.35rem;font-weight:400"><input type="checkbox" id="notifCanalWhatsapp" checked /> WhatsApp</label>
+        </div>
+        <label>Mensaje</label>
+        <textarea id="notifMensajePaciente" rows="2" placeholder="Ej: Le recordamos su turno de mañana a las 10hs.">Le recordamos su turno.</textarea>
+        <div class="actions-row">
+          <button class="btn" onclick="enviarNotificacionPaciente()">Enviar (simulado)</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Enviar notificación masiva</h3>
         <label>Destinatario</label>
         <select id="notifDestino">
           <option value="paciente">Todos los pacientes con turno próximo</option>
@@ -216,27 +237,34 @@ function renderTabContent() {
         <label>Mensaje</label>
         <textarea id="notifMensaje" rows="2" placeholder="Ej: Recordamos que el consultorio permanecerá cerrado el feriado."></textarea>
         <div class="actions-row">
-          <button class="btn" onclick="enviarNotificacion()">Enviar (simulado)</button>
+          <button class="btn secondary" onclick="enviarNotificacion()">Enviar (simulado)</button>
         </div>
       </div>
+
       <div class="card">
         <h3>Historial de notificaciones</h3>
         ${
           notifs.length === 0
             ? `<div class="empty-state">Todavía no se enviaron notificaciones.</div>`
             : `<div class="table-wrap"><table>
-                <thead><tr><th>Fecha</th><th>Destinatario</th><th>Mensaje</th></tr></thead>
+                <thead><tr><th>Fecha</th><th>Para</th><th>Canal</th><th>Contacto</th><th>Mensaje</th></tr></thead>
                 <tbody>
                   ${notifs
-                    .map(
-                      (n) =>
-                        `<tr><td>${new Date(n.fecha).toLocaleString("es-AR")}</td><td>${n.destinatario}</td><td>${n.mensaje}</td></tr>`
-                    )
+                    .map((n) => {
+                      const canales = n.canal && n.canal.length ? n.canal.map(canalBadgeHtml).join(" ") : "—";
+                      const contacto = n.contacto
+                        ? [n.contacto.email, n.contacto.telefono].filter(Boolean).join(" · ")
+                        : "—";
+                      const para = n.etiqueta || n.destinatario || "—";
+                      return `<tr><td>${new Date(n.fecha).toLocaleString("es-AR")}</td><td>${para}</td><td>${canales}</td><td>${contacto}</td><td>${n.mensaje}</td></tr>`;
+                    })
                     .join("")}
                 </tbody>
               </table></div>`
         }
       </div>`;
+    // Muestra el contacto del primer paciente seleccionado por defecto
+    if (paciente) setTimeout(actualizarContactoNotif, 0);
   }
 }
 
@@ -266,11 +294,10 @@ function crearSobreturno() {
     creado: new Date().toISOString(),
   });
   if (pacienteId) {
-    db.notificaciones.push({
-      id: uid("notif"),
-      destinatario: "paciente",
+    simularEnvioNotificacion(db, {
+      pacienteId,
       mensaje: `Se te asignó un sobreturno el ${formatFecha(fecha)} a las ${hora}.`,
-      fecha: new Date().toISOString(),
+      canales: ["email", "whatsapp"],
     });
   }
   saveDB(db);
@@ -346,6 +373,52 @@ function eliminarObraSocial(id) {
   saveDB(db);
   renderPanelRecepcion({ tipo: "success", msg: "Obra social eliminada." });
   return false;
+}
+
+function actualizarContactoNotif() {
+  const select = document.getElementById("notifPacienteId");
+  const infoBox = document.getElementById("notifContactoInfo");
+  const checkWhatsapp = document.getElementById("notifCanalWhatsapp");
+  if (!select || !infoBox) return;
+  const db = loadDB();
+  const paciente = db.pacientes.find((p) => p.id === select.value);
+  if (!paciente) return;
+
+  const tieneTelefono = !!paciente.telefono;
+  infoBox.innerHTML = `Email: <strong>${paciente.email}</strong>${
+    tieneTelefono ? ` · WhatsApp: <strong>${paciente.telefono}</strong>` : " · <em>sin teléfono registrado</em>"
+  }`;
+  if (checkWhatsapp) {
+    checkWhatsapp.disabled = !tieneTelefono;
+    if (!tieneTelefono) checkWhatsapp.checked = false;
+  }
+}
+
+function enviarNotificacionPaciente() {
+  const pacienteId = document.getElementById("notifPacienteId").value;
+  const mensaje = document.getElementById("notifMensajePaciente").value.trim();
+  const porEmail = document.getElementById("notifCanalEmail").checked;
+  const porWhatsapp = document.getElementById("notifCanalWhatsapp").checked;
+
+  if (!mensaje) {
+    renderPanelRecepcion({ tipo: "error", msg: "Escribí un mensaje antes de enviar." });
+    return;
+  }
+  if (!porEmail && !porWhatsapp) {
+    renderPanelRecepcion({ tipo: "error", msg: "Elegí al menos un canal (Email o WhatsApp)." });
+    return;
+  }
+
+  const canales = [];
+  if (porEmail) canales.push("email");
+  if (porWhatsapp) canales.push("whatsapp");
+
+  const db = loadDB();
+  const { avisos } = simularEnvioNotificacion(db, { pacienteId, mensaje, canales });
+  saveDB(db);
+
+  const avisoTxt = avisos.length ? ` Atención: ${avisos.join(", ")}.` : "";
+  renderPanelRecepcion({ tipo: "success", msg: `Notificación enviada (simulada).${avisoTxt}` });
 }
 
 function enviarNotificacion() {
