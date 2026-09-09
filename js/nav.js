@@ -36,12 +36,18 @@ function renderHeader(activePage) {
     "afterbegin",
     `
     <header class="topbar">
-      <div class="brand"><span class="logo"><img src="img/logo.png" alt="Logo" /></span> Consultorio Digital</div>
-      <nav class="mainnav">${navHtml}</nav>
+      <div class="brand"><span class="logo"><img src="img/logo.png" alt="Logo" /></span> STAR.ia Consultora</div>
+      <button class="nav-toggle" id="navToggle" onclick="toggleMobileNav()" aria-label="Abrir menú">☰</button>
+      <nav class="mainnav" id="mainNav">${navHtml}</nav>
       ${sessionHtml}
     </header>
   `
   );
+}
+
+function toggleMobileNav() {
+  const nav = document.getElementById("mainNav");
+  if (nav) nav.classList.toggle("open");
 }
 
 function renderFooter() {

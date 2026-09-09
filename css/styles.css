@@ -98,6 +98,50 @@ nav.mainnav a.active {
   color: white;
 }
 
+.nav-toggle {
+  display: none;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: white;
+  font-size: 1.3rem;
+  line-height: 1;
+  padding: 0.35rem 0.7rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.nav-toggle:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+/* Menú hamburguesa en mobile */
+@media (max-width: 720px) {
+  .nav-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  nav.mainnav {
+    display: none;
+    order: 4;
+    width: 100%;
+    flex-direction: column;
+    gap: 0.2rem;
+    margin-top: 0.4rem;
+  }
+
+  nav.mainnav.open {
+    display: flex;
+  }
+
+  nav.mainnav a {
+    width: 100%;
+    text-align: left;
+    border-radius: 8px;
+  }
+}
+
 .session-chip {
   display: flex;
   align-items: center;
