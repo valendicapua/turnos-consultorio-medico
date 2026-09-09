@@ -253,7 +253,7 @@ function renderTabContent() {
                     .map((n) => {
                       const canales = n.canal && n.canal.length ? n.canal.map(canalBadgeHtml).join(" ") : "—";
                       const contacto = n.contacto
-                        ? [n.contacto.email, n.contacto.telefono].filter(Boolean).join(" · ")
+                        ? [n.contacto.email, n.contacto.telefono].filter(Boolean).join("<br>")
                         : "—";
                       const para = n.etiqueta || n.destinatario || "—";
                       return `<tr><td>${new Date(n.fecha).toLocaleString("es-AR")}</td><td>${para}</td><td>${canales}</td><td>${contacto}</td><td>${n.mensaje}</td></tr>`;
