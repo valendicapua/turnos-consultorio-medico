@@ -164,6 +164,8 @@ function cancelarTurno(turnoId) {
   const turno = db.turnos.find((t) => t.id === turnoId);
   if (turno) {
     const pacienteId = turno.pacienteId;
+    const pacienteNombre = nombrePaciente(db, pacienteId);
+    const prof = db.profesionales.find((p) => p.id === turno.profesionalId);
     turno.estado = "libre";
     turno.pacienteId = null;
     simularEnvioNotificacion(db, {
@@ -171,6 +173,9 @@ function cancelarTurno(turnoId) {
       mensaje: `Turno del ${formatFecha(turno.fecha)} ${turno.hora} cancelado correctamente.`,
       canales: ["email", "whatsapp"],
     });
+    const msgInterno = `El turno de ${pacienteNombre} con ${prof ? prof.nombre : "—"} del ${formatFecha(turno.fecha)} ${turno.hora} fue cancelado por el paciente.`;
+    notificarInterno(db, { destino: "medico", profesionalId: turno.profesionalId, tipo: "cancelacion", mensaje: msgInterno });
+    notificarInterno(db, { destino: "recepcion", tipo: "cancelacion", mensaje: msgInterno });
     saveDB(db);
   }
   renderDashboardPaciente({ tipo: "success", msg: "Turno cancelado. El horario vuelve a quedar disponible." });
@@ -248,9 +253,9 @@ function renderWizard() {
   } else if (wizardState.step === 3) {
     const fecha = wizardState.fecha || todayISO(0);
     wizardState.fecha = fecha;
-    const disponibles = db.turnos.filter(
-      (t) => t.profesionalId === wizardState.profesionalId && t.estado === "libre" && t.fecha === fecha
-    );
+    const turnosDia = db.turnos
+      .filter((t) => t.profesionalId === wizardState.profesionalId && t.fecha === fecha)
+      .sort((a, b) => a.hora.localeCompare(b.hora));
     const fechasPosibles = [0, 1, 2].map((d) => todayISO(d));
 
     card.innerHTML = `
@@ -267,16 +272,19 @@ function renderWizard() {
             )
             .join("")}
         </div>
-        <label>Horarios disponibles</label>
+        <label>Agenda del día (los horarios en gris ya están reservados)</label>
         <div class="slot-grid">
           ${
-            disponibles.length === 0
-              ? `<div class="empty-state" style="grid-column:1/-1">No hay horarios libres ese día. Probá otra fecha.</div>`
-              : disponibles
-                  .map(
-                    (t) =>
-                      `<div class="slot ${wizardState.turnoId === t.id ? "selected" : ""}" onclick="elegirHorario('${t.id}')">${t.hora}</div>`
-                  )
+            turnosDia.length === 0
+              ? `<div class="empty-state" style="grid-column:1/-1">No hay horarios cargados ese día. Probá otra fecha.</div>`
+              : turnosDia
+                  .map((t) => {
+                    const libre = t.estado === "libre";
+                    const selected = wizardState.turnoId === t.id;
+                    return `<div class="slot ${libre ? "" : "ocupado"} ${selected ? "selected" : ""}" ${
+                      libre ? `onclick="elegirHorario('${t.id}')"` : ""
+                    } title="${libre ? "Disponible" : "Reservado"}">${t.hora}</div>`;
+                  })
                   .join("")
           }
         </div>
@@ -346,6 +354,18 @@ function confirmarReserva() {
     mensaje: `Turno confirmado para el ${formatFecha(turno.fecha)} a las ${turno.hora}.`,
     canales: ["email", "whatsapp"],
   });
+  const prof = db.profesionales.find((p) => p.id === turno.profesionalId);
+  notificarInterno(db, {
+    destino: "medico",
+    profesionalId: turno.profesionalId,
+    tipo: "turno_asignado",
+    mensaje: `Nuevo turno asignado: ${session.nombre} el ${formatFecha(turno.fecha)} a las ${turno.hora}.`,
+  });
+  if (agendaCompleta(db, turno.profesionalId, turno.fecha)) {
+    const msgLlena = `La agenda de ${prof ? prof.nombre : "—"} para el ${formatFecha(turno.fecha)} está completa.`;
+    notificarInterno(db, { destino: "medico", profesionalId: turno.profesionalId, tipo: "agenda_llena", mensaje: msgLlena });
+    notificarInterno(db, { destino: "recepcion", tipo: "agenda_llena", mensaje: msgLlena });
+  }
   saveDB(db);
   const avisoTxt = avisos.length ? ` (${avisos.join(", ")}, no se pudo enviar por ese medio)` : "";
   renderDashboardPaciente({

@@ -366,6 +366,15 @@ tr:hover td {
   color: white;
   border-color: var(--azul);
 }
+.slot.ocupado {
+  background: #eef0f2;
+  color: #9aa4ac;
+  cursor: not-allowed;
+  border-style: dashed;
+}
+.slot.ocupado:hover {
+  border-color: var(--gris-borde);
+}
 .slot-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));

@@ -137,7 +137,7 @@ function renderTabContent() {
           </div>
           <div>
             <label>Horario hasta</label>
-            <input type="time" id="pfHasta" value="13:00" />
+            <input type="time" id="pfHasta" value="18:00" />
           </div>
         </div>
         <div class="actions-row">
@@ -205,6 +205,7 @@ function renderTabContent() {
       </div>`;
   } else if (recepcionTab === "notificaciones") {
     const notifs = [...db.notificaciones].reverse();
+    const notifsInternas = [...(db.notificacionesInternas || [])].reverse();
     const paciente = db.pacientes[0];
     container.innerHTML = `
       <div class="card">
@@ -239,6 +240,26 @@ function renderTabContent() {
         <div class="actions-row">
           <button class="btn secondary" onclick="enviarNotificacion()">Enviar (simulado)</button>
         </div>
+      </div>
+
+      <div class="card">
+        <h3>Notificaciones internas del sistema</h3>
+        <p style="color:var(--gris-texto);margin-top:0">Avisos automáticos entre módulos: cancelaciones, turnos asignados y agendas completas.</p>
+        ${
+          notifsInternas.length === 0
+            ? `<div class="empty-state">Todavía no hay notificaciones internas.</div>`
+            : `<div class="table-wrap"><table>
+                <thead><tr><th>Fecha</th><th>Tipo</th><th>Para</th><th>Mensaje</th></tr></thead>
+                <tbody>
+                  ${notifsInternas
+                    .map((n) => {
+                      const para = n.destino === "recepcion" ? "Recepción" : n.profesionalId ? nombreProfesional(db, n.profesionalId) : "Todos los profesionales";
+                      return `<tr><td>${new Date(n.fecha).toLocaleString("es-AR")}</td><td><span class="${tipoNotifInternaClass(n.tipo)}">${tipoNotifInternaLabel(n.tipo)}</span></td><td>${para}</td><td>${n.mensaje}</td></tr>`;
+                    })
+                    .join("")}
+                </tbody>
+              </table></div>`
+        }
       </div>
 
       <div class="card">
@@ -298,6 +319,12 @@ function crearSobreturno() {
       pacienteId,
       mensaje: `Se te asignó un sobreturno el ${formatFecha(fecha)} a las ${hora}.`,
       canales: ["email", "whatsapp"],
+    });
+    notificarInterno(db, {
+      destino: "medico",
+      profesionalId,
+      tipo: "turno_asignado",
+      mensaje: `Nuevo sobreturno asignado: ${nombrePaciente(db, pacienteId)} el ${formatFecha(fecha)} a las ${hora}.`,
     });
   }
   saveDB(db);
